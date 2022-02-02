@@ -1,0 +1,86 @@
+<!-- Template page: This settings page offers various input field to gather settings information -->
+
+{% extends "masterPage.html" %}
+
+{% block content %}
+<div class="row">
+        
+        <!-- Left Rail -->
+        <!-- Menu element-->
+        <div class="col-2">
+
+        </div>
+
+        <!-- Middle Rail -->
+        <div class="col-8">
+            <div class="section" >
+                <div class="panel panel--loose panel--raised base-margin-bottom">
+                    <h2 class="subtitle">Settings</h2>
+                    <hr>
+                    
+                        <div class="section"> 
+                                                                                             
+                            <!--CUSTOMIZE: Text field section: Add or remove elements as needed.-->
+                                                           
+                                <!--Value1 Field-->
+                                <form action="/settings" method="POST" name="envVars"> 
+                                    <div class="form-group base-margin-bottom">
+                                        <div class="form-group__text">
+                                            <input name="apikey" type="text" required="" value={{settings.apikey}}>
+                                            <label for="value1">API Key*</label>
+                                        </div>
+                                        <div class="help-block" role="alert">
+                                            <span>Retrieve your Meraki API Key from your Meraki Dashboard under "My Profile"</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <input id="settings-submit" type="submit" class="btn btn-primary" value="Submit" {% if apikeyset %} disabled {% else %} {% endif %}>
+                                    </div>
+                                </form>
+                                
+                                <!--Dropdown Select-->
+                                <form action="/" method="POST" name="envVars"> 
+                                    <div style="margin-top: 50px;" class="form-group base-margin-bottom" id="networks-select" {% if apikeyset %} {% else %} hidden {% endif %}>
+                                        <label for="network">Select network:</label> 
+                                        <div id="network" class="network-select">
+                                            <div class="form-group base-margin-bottom">
+                                                <div class="form-group__text select">
+                                                    <select name="network" class='networks'>
+                                                        <option disabled selected hidden value="0">Please choose...</option>
+                                                        {% for n in networks %}
+                                                            <option value="{{n.id}}">{{n.name}} (ID: {{n.id}}, org: {{n.org}})</option>                                                      
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                            <div>
+                                                <input style="margin-top: 20px;" id="settings-submit" class="btn btn-primary" type="submit" value="Save & Run">
+                                            </div>
+                                    </div>
+                                    
+                                <form action="/settings" method="POST" name="envVars"> 
+                            
+                            <!--CUSTOMIZE END-->
+                        
+                            <!-- Button area-->
+                            
+                            <span class="required-label pull-right">* required fields</span>
+
+                        </div> 
+
+                    </form>
+                    
+                    <!--Alert for error message-->
+                        <!--PASS INFO: Pass the following information to the template: error=True/False ; errormessage="xxx" ; errorcode=xxx-->
+                        {% include "alert.html" %}
+
+                </div>
+            </div>
+        </div>
+
+    <!-- Right Rail -->
+    <div class="col-0 col-xl-3 col-md-3">
+    </div>
+</div>
+{%  endblock %}

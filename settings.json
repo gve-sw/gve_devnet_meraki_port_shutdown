@@ -1,0 +1,1 @@
+{"apikey": "YOUR_MERAKI_API_KEY", "network": {"name": "XXX", "id": "YYY"}, "start": "18:00", "stop": "08:00"}

@@ -1,0 +1,122 @@
+<!-- Template page: This settings page offers various input field to gather settings information -->
+
+{% extends "masterPage.html" %}
+
+{% block content %}
+<div class="row">
+        
+        <!-- Left Rail -->
+        <!-- Menu element-->
+        <div class="col-1">
+
+        </div>
+
+        <!-- Middle Rail -->
+        <div class="col-6">
+            <div class="section" >
+                <div class="panel panel--loose panel--raised base-margin-bottom" style="margin-top: 20px;">
+                    <h4>Scheduled Ports</h4>
+                    <hr>
+                                                                                             
+                                <form action="/" method="POST" name="envVars"> 
+                                    <div style="margin-top: 0px;" class="form-group base-margin-bottom" id="networks-select">
+                                        {% for d in devices %}
+                                        <h6 style="margin-top:20px;">{{d.device}} (model: {{d.model}})</h6>
+                                        <table id="networks" class="table table--lined table--selectable" aria-label="Selectable rows table example">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Port Name</th>
+                                                        <th>Type</th>
+                                                        <th>Enabled</th>
+                                                        <th>Port Schedule</th>
+                                                        <th>Amount</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for p in d.ports %}
+                                                    <tr>
+                                                        <td>{{p.name}}</td>
+                                                        <td>{{p.type}}</td>
+                                                        <td>{{p.enabled}}</td>
+                                                        <td>{{p.schedule}}</td>
+                                                        <td>{{p.amount}}</td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        {% endfor %}
+                                    </div>
+                                    
+                                <form action="/settings" method="POST" name="envVars"> 
+                            
+                            <!--CUSTOMIZE END-->
+                        
+                            <!-- Button area-->
+
+                    </form>
+                    
+                    <!--Alert for error message-->
+                        <!--PASS INFO: Pass the following information to the template: error=True/False ; errormessage="xxx" ; errorcode=xxx-->
+                        {% include "alert.html" %}
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-4">
+            <div class="section" >
+                <div class="panel panel--loose panel--raised base-margin-bottom" style="margin-top: 20px;">
+                    <h4>Change Port Schedule</h4>
+                    <hr>
+                                                                                             
+                                <form action="/schedule" method="POST" name="envVars"> 
+                                    <div style="margin-top: 0px;" class="form-group base-margin-bottom" id="networks-select">
+                                        <div class="form-group base-margin-bottom">
+                                            <div class="form-group__text">
+                                                <input name="start" type="time" required="" value={{now}}>
+                                                <label for="value1">Shutdown at:</label>
+                                            </div>
+                                            <div class="help-block" role="alert">
+                                                <span>Enter the time when the ports are supposed to shut down</span>
+                                            </div>
+                                        </div>
+                                        <div class="form-group base-margin-bottom">
+                                            <div class="form-group__text">
+                                                <input name="stop" type="time" required="" value={{later}}>
+                                                <label for="value1">Startup at:</label>
+                                            </div>
+                                            <div class="help-block" role="alert">
+                                                <span>Enter the time when the ports are supposed to restart</span>
+                                            </div>
+                                        </div>
+                                        <script>
+                                            function loadButton(e) {
+                                                e.innerHTML = "Loading..."
+                                            }
+                                        </script>
+                                        <div>
+                                            <button id="settings-submit" type="submit" class="btn btn-primary" onclick="loadButton(this);">Schedule ports</button>
+                                        </div>
+                                    </div>
+                                    
+                                <form action="/settings" method="POST" name="envVars"> 
+                            
+                            <!--CUSTOMIZE END-->
+                        
+                            <!-- Button area-->
+
+                    </form>
+                    
+                    <!--Alert for error message-->
+                        <!--PASS INFO: Pass the following information to the template: error=True/False ; errormessage="xxx" ; errorcode=xxx-->
+                        {% include "alert.html" %}
+
+                </div>
+            </div>
+        </div>
+
+    <!-- Right Rail -->
+    <div class="col-0 col-xl-3 col-md-3">
+    </div>
+</div>
+{%  endblock %}
