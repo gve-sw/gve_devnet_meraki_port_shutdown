@@ -61,11 +61,15 @@ $ python3 script.py
 
 ![](IMAGES/1image.png)
 
-2. On the right side of the landing page, declare the times at which you want to schedule port shutdwn, and port start-up. Afterwards, click `Schedule ports`. 
+2. Select the ports you want to schedule, or upload a list to be selected from a CSV file with on each line, a device serial number in the first column and a port ID in the second column. (**NOTE:** An example CSV file is included as `dummy_csv.csv`)
+
+![](IMAGES/6image.png)
+
+3. On the right side of the landing page, declare the times at which you want to schedule port shutdwn, and port start-up. Afterwards, click `Schedule ports`. 
 
 ![](IMAGES/5image.png)
 
-3. At any time, you can go back to the landing page, respectively the settings page by using the top right icons.
+4. At any time, you can go back to the landing page, respectively the settings page by using the top right icons.
 
 ![](IMAGES/3image.png)
 

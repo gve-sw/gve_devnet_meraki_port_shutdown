@@ -13,7 +13,7 @@ or implied.
 import json, datetime, time, requests
 from meraki import DashboardAPI
 
-# Read data from json file
+#Read data from json file
 def getJson(filepath):
 	with open(filepath, 'r') as f:
 		json_content = json.loads(f.read())
@@ -21,89 +21,56 @@ def getJson(filepath):
 
 	return json_content
 
-# Shut all ports down
+#Write data to json file
+def writeJson(filepath, data):
+    with open(filepath, "w") as f:
+        json.dump(data, f)
+    f.close()
+
 def shutdown_ports():
+    print('Starting up all ports...')
     settings = getJson('settings.json')
     
     m = DashboardAPI(settings['apikey'])
 
-    ports = get_scheduled_ports()
-    for s in ports:
-        for p in s['ports']:
-            for pp in p['ids']:
-                url = f"https://api.meraki.com/api/v1/devices/{s['device']}/switch/ports/{pp}"
-                headers = {
-                    "Content-Type" : "application/json",
-                    "Accept" : "application/json",
-                    "X-Cisco-Meraki-API-Key" : settings['apikey']
-                }
-                
-                details = m.switch.getDeviceSwitchPort(s['device'], pp)
-                details['enabled'] = False
+    ports = getJson('scheduled_ports.json')
+    for p in ports:
+        url = f"https://api.meraki.com/api/v1/devices/{p[0]}/switch/ports/{p[1]}"
+        headers = {
+            "Content-Type" : "application/json",
+            "Accept" : "application/json",
+            "X-Cisco-Meraki-API-Key" : settings['apikey']
+        }
+            
+        details = m.switch.getDeviceSwitchPort(p[0], p[1])
+        details['enabled'] = False
 
-                resp = requests.put(url, headers=headers, json=details)
-                resp.raise_for_status()
+        resp = requests.put(url, headers=headers, json=details)
+        resp.raise_for_status()
+    print('Done')
 
-# Start all ports
 def start_ports():
+    print('Starting up all ports...')
     settings = getJson('settings.json')
     
     m = DashboardAPI(settings['apikey'])
 
-    ports = get_scheduled_ports()
-    for s in ports:
-        for p in s['ports']:
-            for pp in p['ids']:
-                url = f"https://api.meraki.com/api/v1/devices/{s['device']}/switch/ports/{pp}"
-                headers = {
-                    "Content-Type" : "application/json",
-                    "Accept" : "application/json",
-                    "X-Cisco-Meraki-API-Key" : settings['apikey']
-                }
-                
-                details = m.switch.getDeviceSwitchPort(s['device'], pp)
-                details['enabled'] = True
+    ports = getJson('scheduled_ports.json')
+    for p in ports:
+        url = f"https://api.meraki.com/api/v1/devices/{p[0]}/switch/ports/{p[1]}"
+        headers = {
+            "Content-Type" : "application/json",
+            "Accept" : "application/json",
+            "X-Cisco-Meraki-API-Key" : settings['apikey']
+        }
+            
+        details = m.switch.getDeviceSwitchPort(p[0], p[1])
+        details['enabled'] = True
 
-                resp = requests.put(url, headers=headers, json=details)
-                resp.raise_for_status()
+        resp = requests.put(url, headers=headers, json=details)
+        resp.raise_for_status()
+    print('Done')
 
-# Get list of port-scheduled ports
-def get_scheduled_ports():
-    settings=getJson('settings.json')
-
-    m = DashboardAPI(settings['apikey'])
-
-    result = []
-    devices = m.networks.getNetworkDevices(settings['network']['id'])
-    for d in devices:
-        if 'MS' in d['model']:
-            ports = []
-            for p in m.switch.getDeviceSwitchPorts(d['serial']):
-                if p['portScheduleId'] != None:
-                    added = False
-                    for p_seen in ports:
-                        if (not added) and p['name'] == p_seen['name'] and p['enabled'] == p_seen['enabled'] and p['type'] == p_seen['type'] and p['portScheduleId'] == p_seen['schedule']:
-                            p_seen['ids'] += [p['portId']]
-                            p_seen['amount'] += 1
-                            added = True
-                    if not added:
-                        ports += [{
-                            'name' : p['name'],
-                            'ids' : [p['portId']],
-                            'enabled' : p['enabled'],
-                            'type' : p['type'],
-                            'schedule' : p['portScheduleId'],
-                            'amount' : 1
-                        }]
-            result += [{
-                'device' : d['serial'],
-                'model' : d['model'],
-                'ports' : ports
-            }]
-    
-    return result
-
-# Shut down/start up ports if necessary
 def check_for_shutdown():
     settings = getJson('settings')
 
@@ -133,5 +100,4 @@ def check_for_shutdown():
 if __name__ == "__main__":
     while True:
         check_for_shutdown()
-        # Sleep for 10 minutes
         time.sleep(600)

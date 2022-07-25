@@ -41,19 +41,32 @@
                                 <!--Dropdown Select-->
                                 <form action="/" method="POST" name="envVars"> 
                                     <div style="margin-top: 50px;" class="form-group base-margin-bottom" id="networks-select" {% if apikeyset %} {% else %} hidden {% endif %}>
-                                        <label for="network">Select network:</label> 
-                                        <div id="network" class="network-select">
-                                            <div class="form-group base-margin-bottom">
-                                                <div class="form-group__text select">
-                                                    <select name="network" class='networks'>
-                                                        <option disabled selected hidden value="0">Please choose...</option>
-                                                        {% for n in networks %}
-                                                            <option value="{{n.id}}">{{n.name}} (ID: {{n.id}}, org: {{n.org}})</option>                                                      
-                                                        {% endfor %}
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        <labelfor="networks">Select networks:</label> 
+                                        <table id="networks" class="table table--lined table--selectable" aria-label="Selectable rows table example">
+                                                <thead>
+                                                    <tr>
+                                                        <th></th>
+                                                        <th>Organization name</th>
+                                                        <th>Network name</th>
+                                                        <th>Network ID</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for n in networks %}
+                                                    <tr>
+                                                        <td>
+                                                            <label class="checkbox">
+                                                                <input type="checkbox" name="network" checked value={{n.id}}>
+                                                                <span class="checkbox__input"></span>
+                                                            </label>
+                                                        </td>
+                                                        <td>{{n.org}}</td>
+                                                        <td>{{n.name}}</td>
+                                                        <td>{{n.id}}</td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
                                             <div>
                                                 <input style="margin-top: 20px;" id="settings-submit" class="btn btn-primary" type="submit" value="Save & Run">
                                             </div>

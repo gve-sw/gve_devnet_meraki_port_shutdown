@@ -15,31 +15,38 @@
         <div class="col-6">
             <div class="section" >
                 <div class="panel panel--loose panel--raised base-margin-bottom" style="margin-top: 20px;">
-                    <h4>Scheduled Ports</h4>
+                    <h4>Scheduled Ports
+                        <input id="upload" value="" type="file" hidden/>
+                        <span style="float: right;" data-balloon="In each CSV file line, have a device serial number in the first column + a port ID in the second column" data-balloon-pos="up"><button class="btn btn--primary" href="#" id="upload_link">Import from CSV</button></span></h4>
                     <hr>
                                                                                              
-                                <form action="/" method="POST" name="envVars"> 
+                        <form action="/schedule" method="POST" name="envVars"> 
                                     <div style="margin-top: 0px;" class="form-group base-margin-bottom" id="networks-select">
                                         {% for d in devices %}
                                         <h6 style="margin-top:20px;">{{d.device}} (model: {{d.model}})</h6>
                                         <table id="networks" class="table table--lined table--selectable" aria-label="Selectable rows table example">
                                                 <thead>
                                                     <tr>
+                                                        <th></th>
+                                                        <th>Port ID</th>
                                                         <th>Port Name</th>
                                                         <th>Type</th>
                                                         <th>Enabled</th>
                                                         <th>Port Schedule</th>
-                                                        <th>Amount</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     {% for p in d.ports %}
                                                     <tr>
+                                                        <td><label class="checkbox">
+                                                            <input type="checkbox" name="port" {% if p.checked %} checked {% endif %} value="{{d.device}}.{{p.id}}">
+                                                            <span class="checkbox__input"></span>
+                                                        </label></td>
+                                                        <td>{{p.id}}</td>
                                                         <td>{{p.name}}</td>
                                                         <td>{{p.type}}</td>
                                                         <td>{{p.enabled}}</td>
                                                         <td>{{p.schedule}}</td>
-                                                        <td>{{p.amount}}</td>
                                                     </tr>
                                                     {% endfor %}
                                                 </tbody>
@@ -47,13 +54,10 @@
                                         {% endfor %}
                                     </div>
                                     
-                                <form action="/settings" method="POST" name="envVars"> 
                             
                             <!--CUSTOMIZE END-->
                         
                             <!-- Button area-->
-
-                    </form>
                     
                     <!--Alert for error message-->
                         <!--PASS INFO: Pass the following information to the template: error=True/False ; errormessage="xxx" ; errorcode=xxx-->
@@ -69,7 +73,7 @@
                     <h4>Change Port Schedule</h4>
                     <hr>
                                                                                              
-                                <form action="/schedule" method="POST" name="envVars"> 
+                                
                                     <div style="margin-top: 0px;" class="form-group base-margin-bottom" id="networks-select">
                                         <div class="form-group base-margin-bottom">
                                             <div class="form-group__text">
@@ -83,7 +87,7 @@
                                         <div class="form-group base-margin-bottom">
                                             <div class="form-group__text">
                                                 <input name="stop" type="time" required="" value={{later}}>
-                                                <label for="value1">Startup at:</label>
+                                                <label for="value1">Startup at (on the next day):</label>
                                             </div>
                                             <div class="help-block" role="alert">
                                                 <span>Enter the time when the ports are supposed to restart</span>
@@ -99,7 +103,6 @@
                                         </div>
                                     </div>
                                     
-                                <form action="/settings" method="POST" name="envVars"> 
                             
                             <!--CUSTOMIZE END-->
                         

@@ -20,7 +20,7 @@ import datetime
 import requests
 import json
 from dotenv import load_dotenv
-import os
+import os, csv
 from meraki import DashboardAPI
 from dnacentersdk import api
 
@@ -55,13 +55,17 @@ def writeJson(filepath, data):
 def index():
     if request.method == "POST":
         settings = getJson("settings.json")
-        network = dict(request.form.lists())['network'][0]
+        network_ids = dict(request.form.lists())['network']
+        print(network_ids)
         m = DashboardAPI(settings['apikey'])
-        n = {
-                "name" : m.networks.getNetwork(network)['name'],
-                "id" : network,
-            }
-        settings['network'] = n
+        networks = []
+        for id in network_ids:
+            n = {
+                    "name" : m.networks.getNetwork(id)['name'],
+                    "id" : id,
+                }
+            networks += [n]
+        settings['networks'] = networks
         writeJson("settings.json", settings)
     
     settings = getJson("settings.json")
@@ -107,8 +111,17 @@ def schedule():
         settings['start'] = start
         settings['stop'] = stop
         writeJson('settings.json', settings)
-    
-    return redirect('/')
+
+        ports = dict(request.form.lists())['port']
+        result = []
+        for p in ports:
+                splitted = p.split('.')
+                serial = splitted[0]
+                port = splitted[1]
+                result += [[serial, port]]
+        writeJson('scheduled_ports.json', result)
+
+    return redirect(request.referrer)
 
 ## Helper functions
 def get_scheduled_ports():
@@ -117,34 +130,100 @@ def get_scheduled_ports():
     m = DashboardAPI(settings['apikey'])
 
     result = []
-    devices = m.networks.getNetworkDevices(settings['network']['id'])
+    devices = []
+    for n_id in settings['networks']:
+        try:
+            devices += m.networks.getNetworkDevices(n_id['id'])
+        except:
+            print('Failed to get device')
     for d in devices:
         if 'MS' in d['model']:
             ports = []
             for p in m.switch.getDeviceSwitchPorts(d['serial']):
-                if p['portScheduleId'] != None:
-                    added = False
-                    for p_seen in ports:
-                        if (not added) and p['name'] == p_seen['name'] and p['enabled'] == p_seen['enabled'] and p['type'] == p_seen['type'] and p['portScheduleId'] == p_seen['schedule']:
-                            p_seen['ids'] += [p['portId']]
-                            p_seen['amount'] += 1
-                            added = True
-                    if not added:
-                        ports += [{
-                            'name' : p['name'],
-                            'ids' : [p['portId']],
-                            'enabled' : p['enabled'],
-                            'type' : p['type'],
-                            'schedule' : p['portScheduleId'],
-                            'amount' : 1
-                        }]
+                # added = False
+                # for p_seen in ports:
+                #     # if (not added) and p['name'] == p_seen['name'] and p['enabled'] == p_seen['enabled'] and p['type'] == p_seen['type'] and p['portScheduleId'] == p_seen['schedule']:
+                #     #     p_seen['ids'] += [p['portId']]
+                #     #     p_seen['amount'] += 1
+                #     #     added = True
+
+                # if not added:
+                ports += [{
+                    'name' : p['name'],
+                    'id' : p['portId'],
+                    'enabled' : p['enabled'],
+                    'type' : p['type'],
+                    'schedule' : p['portScheduleId'],
+                    'checked' : True
+                }]
             result += [{
                 'device' : d['serial'],
                 'model' : d['model'],
                 'ports' : ports
             }]
     
-    return result  
+    with open('ports.json', 'w') as f:
+        json.dump(result, f, indent=2)
+    
+    return getJson('ports.json')   
+
+@app.route('/portlist', methods=["GET"])
+def show_from_csv():
+    result = []
+    with open('uploaded.csv', 'r') as f:
+        settings=getJson('settings.json')
+        reader = csv.reader(f)
+        serial_seen = {}
+
+        for line in reader:
+            serial = line[0]
+            port = line[1]
+            if serial not in serial_seen:
+                serial_seen[serial] = [port]
+            else:
+                serial_seen[serial] += [port]
+
+        m = DashboardAPI(settings['apikey'])
+        for serial in serial_seen:
+            try:
+                ports = []
+                for p in m.switch.getDeviceSwitchPorts(serial):
+                    checked = False
+                    if p['portId'] in serial_seen[serial]:
+                        checked=True
+                    ports += [{
+                        'name' : p['name'],
+                        'id' : p['portId'],
+                        'enabled' : p['enabled'],
+                        'type' : p['type'],
+                        'schedule' : p['portScheduleId'],
+                        'checked' : checked
+                    }]
+                device = m.devices.getDevice(serial)
+                result += [{
+                    'device' : device['serial'],
+                    'model' : device['model'],
+                    'ports' : ports
+                }]
+            except:
+                print('Wrong serial number')
+        
+        with open('ports.json', 'w') as f:
+            json.dump(result, f, indent=2)  
+
+        return render_template('home.html', devices=result, now=settings['start'], later=settings['stop'])
+
+@app.route("/extract-api-keys", methods=["GET","POST"])
+def upload_file_function():
+    uploaded_file = request.files
+    file_dict = uploaded_file.to_dict()
+    the_file = file_dict["file"]
+    if not the_file.filename.lower().endswith('.csv'):
+        return "Please upload a valid CSV format, or enter the API keys manually"
+    with open('uploaded.csv', 'wb') as f:
+        f.write(the_file.read())
+    
+    return "Read CSV file"
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=9999, debug=True)
